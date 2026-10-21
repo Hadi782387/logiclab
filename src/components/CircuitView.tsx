@@ -1,11 +1,12 @@
 import {useRef,useState} from 'react';
 import {layout,simulate,isGate} from '../core/circuit.ts';import type {Graph} from '../core/circuit.ts';
 import {save,svgString,pngBlob} from '../core/export.ts';
-const C={bg:'#0b1220',wire:'#7b8aa3',high:'#34d399',low:'#475569',text:'#e6edf7',panel:'#111a2e'};
+import {PAL} from '../theme.ts';
 const AND='M0,0H24A24,20 0 0 1 24,40H0Z',OR='M0,0Q30,0 48,20Q30,40 0,40Q14,20 0,0Z';
 const SH:Record<string,string>={AND,NAND:AND,OR,NOR:OR,XOR:OR,XNOR:OR,NOT:'M0,0L48,20L0,40Z'};
 const BUB=['NAND','NOR','XNOR','NOT'];
-export default function CircuitView({g,env,onToggle,name,title}:{g:Graph;env:Record<string,number>;onToggle?:(l:string)=>void;name:string;title:string}){
+export default function CircuitView({g,env,onToggle,name,title,dark}:{dark:boolean;g:Graph;env:Record<string,number>;onToggle?:(l:string)=>void;name:string;title:string}){
+ const C=PAL[dark?'dark':'light'];
  const ref=useRef<SVGSVGElement>(null),[zoom,setZoom]=useState(1),[msg,setMsg]=useState('');
  const {pos,w,h}=layout(g),{values,error}=simulate(g,env),col=(id:string)=>values[id]?C.high:C.wire;
  const fan:Record<string,number>={};g.edges.forEach(e=>fan[e.from]=(fan[e.from]||0)+1);
@@ -26,8 +27,8 @@ export default function CircuitView({g,env,onToggle,name,title}:{g:Graph;env:Rec
    {g.nodes.map(n=>{const p=pos[n.id],v=values[n.id]||0;
     if(n.type==='INPUT'||n.type==='CONST')return <g key={n.id} onClick={()=>n.type==='INPUT'&&onToggle?.(n.label)} style={{cursor:n.type==='INPUT'?'pointer':'default'}}>
      <text x={p.x-14} y={p.y+5} textAnchor="end" fill={C.text} fontSize={14}>{n.type==='INPUT'?n.label:'const'}</text>
-     <circle cx={p.x} cy={p.y} r={10} fill={v?C.high:C.low}/><text x={p.x} y={p.y+4} textAnchor="middle" fontSize={12} fill={C.bg} fontWeight={700}>{v}</text></g>;
-    if(n.type==='OUTPUT')return <g key={n.id}><circle cx={p.x+10} cy={p.y} r={10} fill={v?C.high:C.low}/><text x={p.x+10} y={p.y+4} textAnchor="middle" fontSize={12} fill={C.bg} fontWeight={700}>{v}</text>
+     <circle cx={p.x} cy={p.y} r={10} fill={v?C.high:C.low}/><text x={p.x} y={p.y+4} textAnchor="middle" fontSize={12} fill={C.text} fontWeight={700}>{v}</text></g>;
+    if(n.type==='OUTPUT')return <g key={n.id}><circle cx={p.x+10} cy={p.y} r={10} fill={v?C.high:C.low}/><text x={p.x+10} y={p.y+4} textAnchor="middle" fontSize={12} fill={C.text} fontWeight={700}>{v}</text>
      <text x={p.x+26} y={p.y+5} fill={C.text} fontSize={14}>{n.label}</text></g>;
     if(!isGate(n.type))return null;
     const st=v?C.high:C.wire;

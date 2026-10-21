@@ -19,3 +19,9 @@ describe('minimizer',()=>{
  it("AB+AB' = A",()=>{const p=parse("AB+AB'");const m=minimize(p.ast,p.vars);expect(m.expr).toBe('A');expect(m.verified).toBe(true)});
  it('equivalent on samples',()=>{for(const s of ['(A OR B) AND (C OR D)','A XOR B XOR C','NOT(A AND B)']){const p=parse(s),m=minimize(p.ast,p.vars);expect(m.verified).toBe(true);const e={A:1,B:0,C:1,D:0};expect(evalAst(parse(m.expr).ast,e)).toBe(evalAst(p.ast,e))}});
 });
+import {solveKmap,parseTerms} from '../core/kmap.ts';
+describe('kmap',()=>{
+ it('minterms 3 vars',()=>{const r=solveKmap(3,'min',[1,3,5,7],[]);expect(r.sop).toBe('C');expect(r.pos).toBe('C');expect(r.verified).toBe(true)});
+ it('maxterms',()=>{const r=solveKmap(2,'max',[0,1,2],[]);expect(r.sop).toBe('AB');expect(r.verified).toBe(true)});
+ it('dont-cares & range',()=>{expect(solveKmap(4,'min',[4,8,10,11,12,15],[9,14]).verified).toBe(true);expect(parseTerms('16',4).error).toMatch(/out of range/)});
+});
