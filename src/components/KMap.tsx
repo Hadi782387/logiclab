@@ -1,4 +1,5 @@
 import {useMemo,useState} from 'react';
+import PageHead from './PageHead.tsx';
 import {parseTerms,solveKmap,kmapLayout,covers} from '../core/kmap.ts';
 const col=(i:number)=>`hsl(${(i*53+250)%360} 70% 55%)`;
 export default function KMap({load}:{load:(e:string)=>void}){
@@ -9,7 +10,8 @@ export default function KMap({load}:{load:(e:string)=>void}){
  const val=(m:number)=>res?res.dcs.includes(m)?'X':res.ones.includes(m)?'1':'0':'';
  const label=kind==='min'?'Minterms Σm':'Maxterms ΠM';
  return <>
-  <section className="panel"><h2>K-Map Solver</h2>
+  <PageHead title="K-Map Solver" sub="Solve 2, 3 or 4 variable Karnaugh maps from minterms or maxterms."/>
+  <section className="panel">
    <p className="muted">Choose the map size, enter minterms or maxterms (and optional don't-cares) as comma-separated numbers. A is the most significant bit.</p>
    <div className="bar"><div className="seg" role="group" aria-label="Variables">{[2,3,4].map(k=><button key={k} className={n===k?'on':''} aria-pressed={n===k} onClick={()=>setN(k)}>2<sup>{k}</sup> ({k} vars)</button>)}</div>
     <div className="seg" role="group" aria-label="Term type">{(['min','max'] as const).map(k=><button key={k} className={kind===k?'on':''} aria-pressed={kind===k} onClick={()=>setKind(k)}>{k==='min'?'Minterms':'Maxterms'}</button>)}</div></div>
