@@ -1,0 +1,3 @@
+const AND='M0,0H24A24,20 0 0 1 24,40H0Z',OR='M0,0Q30,0 48,20Q30,40 0,40Q14,20 0,0Z';
+export const SH:Record<string,string>={AND,NAND:AND,OR,NOR:OR,XOR:OR,XNOR:OR,NOT:'M0,0L48,20L0,40Z'};
+export const BUB=['NAND','NOR','XNOR','NOT'];

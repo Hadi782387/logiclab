@@ -2,9 +2,7 @@ import {useRef,useState} from 'react';
 import {layout,simulate,isGate} from '../core/circuit.ts';import type {Graph} from '../core/circuit.ts';
 import {save,svgString,pngBlob} from '../core/export.ts';
 import {PAL} from '../theme.ts';
-const AND='M0,0H24A24,20 0 0 1 24,40H0Z',OR='M0,0Q30,0 48,20Q30,40 0,40Q14,20 0,0Z';
-const SH:Record<string,string>={AND,NAND:AND,OR,NOR:OR,XOR:OR,XNOR:OR,NOT:'M0,0L48,20L0,40Z'};
-const BUB=['NAND','NOR','XNOR','NOT'];
+import {SH,BUB} from './shapes.ts';
 export default function CircuitView({g,env,onToggle,name,title,dark}:{dark:boolean;g:Graph;env:Record<string,number>;onToggle?:(l:string)=>void;name:string;title:string}){
  const C=PAL[dark?'dark':'light'];
  const ref=useRef<SVGSVGElement>(null),[zoom,setZoom]=useState(1),[msg,setMsg]=useState('');
@@ -19,10 +17,10 @@ export default function CircuitView({g,env,onToggle,name,title,dark}:{dark:boole
   <button onClick={()=>run(()=>save(name+'.svg',svgString(ref.current!),'image/svg+xml'))}>SVG</button>
   <button onClick={()=>run(async()=>save(name+'.png',await pngBlob(ref.current!)))}>PNG</button></div></div>
   {error&&<p className="err">{error}</p>}{msg&&<p className="muted" role="status">{msg}</p>}
-  <div className="scroll"><svg ref={ref} viewBox={`0 0 ${w} ${h}`} width={w*zoom} height={h*zoom} role="img" aria-label={title}>
-   <rect width={w} height={h} fill={C.bg}/>
+  <div className="scroll"><svg id={'svg-'+name} ref={ref} viewBox={`0 0 ${w} ${h}`} width={w*zoom} height={h*zoom} role="img" aria-label={title}>
+   <defs><pattern id={`dots-${name}`} width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill={C.wire} opacity=".28"/></pattern></defs><rect width={w} height={h} fill={C.bg}/><rect width={w} height={h} fill={`url(#dots-${name})`}/>
    {g.edges.map((e,i)=>{const sx=outX(e.from),sy=pos[e.from].y,d=pos[e.to],dy=inY(e.to,e.port),cx=d.x-14;
-    return <path key={i} d={`M${sx},${sy}H${cx}V${dy}H${d.x}`} fill="none" stroke={col(e.from)} strokeWidth={2}/>})}
+    return <path key={i} d={`M${sx},${sy}H${cx}V${dy}H${d.x}`} fill="none" stroke={col(e.from)} strokeWidth={values[e.from]?2.6:2} strokeLinejoin="round"/>})}
    {Object.keys(fan).filter(k=>fan[k]>1).map(k=><circle key={k} cx={outX(k)} cy={pos[k].y} r={3.5} fill={col(k)}/>)}
    {g.nodes.map(n=>{const p=pos[n.id],v=values[n.id]||0;
     if(n.type==='INPUT'||n.type==='CONST')return <g key={n.id} onClick={()=>n.type==='INPUT'&&onToggle?.(n.label)} style={{cursor:n.type==='INPUT'?'pointer':'default'}}>

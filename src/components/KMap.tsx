@@ -1,12 +1,16 @@
 import {useMemo,useState} from 'react';
 import PageHead from './PageHead.tsx';
+import {useCopy} from './useCopy.ts';
+import {Check,Copy} from 'lucide-react';
 import {parseTerms,solveKmap,kmapLayout,covers} from '../core/kmap.ts';
 const col=(i:number)=>`hsl(${(i*53+250)%360} 70% 55%)`;
 export default function KMap({load}:{load:(e:string)=>void}){
- const [n,setN]=useState(4),[kind,setKind]=useState<'min'|'max'>('min'),[t,setT]=useState('0,1,2,5,6,7,8,9,10,14'),[d,setD]=useState('');
+ const cp=useCopy(),[n,setN]=useState(4),[kind,setKind]=useState<'min'|'max'>('min'),[t,setT]=useState('0,1,2,5,6,7,8,9,10,14'),[d,setD]=useState('');
  const r=useMemo(()=>{const a=parseTerms(t,n),b=parseTerms(d,n);const err=a.error||b.error||(a.list.some(x=>b.list.includes(x))?'A term cannot be both a '+(kind==='min'?'minterm':'maxterm')+' and a don\'t-care':undefined);
   return{err,res:err?null:solveKmap(n,kind,a.list,b.list)}},[n,kind,t,d]);
  const L=kmapLayout(n),res=r.res;
+ const cycle=(m:number)=>{const a=parseTerms(t,n).list,b=parseTerms(d,n).list,j=(x:number[])=>x.sort((p,q)=>p-q).join(',');
+  if(a.includes(m)){setT(j(a.filter(x=>x!==m)));setD(j([...b,m]))}else if(b.includes(m))setD(j(b.filter(x=>x!==m)));else setT(j([...a,m]))};
  const val=(m:number)=>res?res.dcs.includes(m)?'X':res.ones.includes(m)?'1':'0':'';
  const label=kind==='min'?'Minterms Σm':'Maxterms ΠM';
  return <>
@@ -21,12 +25,12 @@ export default function KMap({load}:{load:(e:string)=>void}){
   {res&&<>
    <section className="panel"><h3>Karnaugh map</h3><div className="scroll"><table className="kgrid"><thead><tr><th>{L.rowVars}\{L.colVars}</th>{L.cols.map(c=><th key={c.c}>{c.label}</th>)}</tr></thead>
     <tbody>{L.rows.map(rw=><tr key={rw.r}><th>{rw.label}</th>{L.cols.map(c=>{const m=(rw.r<<L.cb)|c.c,v=val(m);
-     return <td key={c.c} className={'kc '+(v==='1'?'h':v==='X'?'x':'l')}><small>{m}</small><b>{v}</b><span className="dots">{res.chosen.map((p,i)=>covers(p,m)?<i key={i} style={{background:col(i)}}/>:null)}</span></td>})}</tr>)}</tbody></table></div>
+     return <td key={c.c} tabIndex={0} role="button" aria-label={`Cell ${m}, value ${v}. Activate to change`} onClick={()=>cycle(m)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();cycle(m)}}} className={'kc '+(v==='1'?'h':v==='X'?'x':'l')}><small>{m}</small><b>{v}</b><span className="dots">{res.chosen.map((p,i)=>covers(p,m)?<i key={i} style={{background:col(i)}}/>:null)}</span></td>})}</tr>)}</tbody></table></div>
     <div className="legend">{res.chosen.map((p,i)=><span key={i}><i style={{background:col(i)}}/>{res.sopTerms[i]}</span>)}</div>
-    <p className="muted">Colored dots show which SOP group covers each cell (groups may overlap and wrap around the edges). X = don't-care.</p></section>
+    <p className="muted">Tap a cell to cycle it: listed term → don't-care → empty. Colored dots show which SOP group covers each cell (groups may overlap and wrap around the edges). X = don't-care.</p></section>
    <section className="panel"><h3>Solution</h3>
     <p className="mono">SOP: Y = {res.sop}</p><p className="mono">POS: Y = {res.pos}</p>
     <p className="muted">Minterms Σm({res.ones.join(', ')||'none'}) · Maxterms ΠM({res.zeros.join(', ')||'none'}) · Don't-cares d({res.dcs.join(', ')||'none'}) · Prime implicants: {res.primes.map(p=>[...p].map((b,i)=>b==='1'?res.vars[i]:b==='0'?res.vars[i]+"'":'').join('')||'1').join(', ')||'none'}</p>
     <p>{res.verified?<span className="ok">Both forms checked against every cell of the map</span>:<span className="err">Verification failed — do not use</span>}</p>
-    <div className="btns"><button onClick={()=>load('Y = '+res.sop)}>Open SOP in Designer</button><button onClick={()=>load('Y = '+res.pos)}>Open POS in Designer</button></div>
+    <div className="btns"><button onClick={()=>cp.copy('sop','Y = '+res.sop)}>{cp.k==='sop'?<Check size={14}/>:<Copy size={14}/>}Copy SOP</button><button onClick={()=>cp.copy('pos','Y = '+res.pos)}>{cp.k==='pos'?<Check size={14}/>:<Copy size={14}/>}Copy POS</button><button onClick={()=>load('Y = '+res.sop)}>Open SOP in Designer</button><button onClick={()=>load('Y = '+res.pos)}>Open POS in Designer</button></div>
     <p className="muted">SOP is solved by grouping 1s (and X where helpful); POS by grouping 0s. Cover selection is essential primes + greedy, so it is not guaranteed globally minimal.</p></section></>}</>}

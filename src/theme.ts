@@ -1,7 +1,7 @@
 import {useEffect,useState} from 'react';
 export type Pref='light'|'dark'|'system';
 const KEY='logiclab.theme';
-export const PAL={light:{bg:'#e9ebff',wire:'#8b8fb5',high:'#16a97a',low:'#c9cbe6',text:'#2d2a4a',panel:'#ffffff'},dark:{bg:'#1a1a2e',wire:'#8a8fc0',high:'#3ddc97',low:'#3b3d63',text:'#eceaff',panel:'#2a2a45'}};
+export const PAL={light:{bg:'#eef0ff',wire:'#8b8fb5',high:'#16a97a',low:'#c9cbe6',text:'#2d2a4a',panel:'#fbfbff'},dark:{bg:'#151736',wire:'#8a8fc0',high:'#3ddc97',low:'#3b3d63',text:'#eceaff',panel:'#242850'}};
 const read=():Pref=>{try{const v=localStorage.getItem(KEY);return v==='light'||v==='dark'||v==='system'?v:'system'}catch{return 'system'}};
 export function useTheme(){
  const [pref,setPref]=useState<Pref>(read);
